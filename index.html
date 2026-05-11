@@ -249,6 +249,10 @@
     }
     .submit-btn:hover  { opacity: 0.88; }
     .submit-btn:active { transform: scale(0.99); opacity: 0.75; }
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
 
     .privacy-note {
       text-align: center;
@@ -452,7 +456,7 @@
     </div>
 
     <div class="submit-wrap">
-      <button class="submit-btn" type="button" onclick="submitForm()">
+      <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
         <i class="ti ti-send" aria-hidden="true"></i> Submit entry
       </button>
       <p class="privacy-note"><i class="ti ti-lock" style="font-size:12px;" aria-hidden="true"></i> Your responses are private and confidential</p>
@@ -518,9 +522,76 @@
       return;
     }
 
-    document.getElementById('formWrap').style.display = 'none';
-    document.getElementById('successWrap').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+
+    // Compile form data
+    const time   = document.getElementById('entryTime').value;
+    const ante   = document.getElementById('antecedent').value.trim();
+    const set    = document.getElementById('setting').value.trim();
+    const cons   = document.getElementById('consequences').value.trim();
+    const feel   = document.getElementById('selfResponse').value;
+    const extra  = document.getElementById('extra').value.trim();
+
+    const emailBody = 
+      `Behaviour Incident Log\n` +
+      `=======================\n\n` +
+      `Name: ${name}\n` +
+      `Date: ${date}\n` +
+      `Time: ${time || 'Not recorded'}\n\n` +
+      `--- ANTECEDENT (What led up to it) ---\n` +
+      `${ante || '(Not filled in)'}\n` +
+      `Setting: ${set || '(Not filled in)'}\n\n` +
+      `--- BEHAVIOUR ---\n` +
+      `Description: ${beh}\n` +
+      `Type(s): ${behaviourTypes.join(', ')}\n` +
+      `Intensity: ${selectedSev || '(Not selected)'}\n\n` +
+      `--- CONSEQUENCES ---\n` +
+      `${cons || '(Not filled in)'}\n` +
+      `Felt afterwards: ${feel || '(Not selected)'}\n\n` +
+      `--- ADDITIONAL COMMENTS ---\n` +
+      `${extra || '(None)'}`;
+
+    // Send via Formspree (free service for static sites)
+    fetch('https://formspree.io/f/meoqqlnq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: name,
+        date: date,
+        time: time,
+        antecedent: ante,
+        setting: set,
+        behaviour: beh,
+        behaviourTypes: behaviourTypes.join(', '),
+        intensity: selectedSev,
+        consequences: cons,
+        felt: feel,
+        extra: extra,
+        message: emailBody
+      })
+    })
+    .then(response => {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Submit entry';
+      
+      if (response.ok) {
+        document.getElementById('formWrap').style.display = 'none';
+        document.getElementById('successWrap').style.display = 'block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        alert('There was an issue sending your entry. Please try again.');
+      }
+    })
+    .catch(error => {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Submit entry';
+      console.error('Error:', error);
+      alert('There was an issue sending your entry. Please try again.');
+    });
   }
 
   // Reset
