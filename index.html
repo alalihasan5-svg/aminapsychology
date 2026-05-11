@@ -194,6 +194,39 @@
     .sev-btn.med  { background: #FAEEDA; border-color: #854F0B; color: #633806; font-weight: 500; }
     .sev-btn.high { background: #FCEBEB; border-color: #A32D2D; color: #501313; font-weight: 500; }
 
+    /* Behaviour type checkboxes */
+    .behaviour-types {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--bg);
+      border: 0.5px solid var(--border-med);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.12s;
+      font-size: 13px;
+      margin-top: 0;
+    }
+    .checkbox-label:hover {
+      border-color: var(--text-tertiary);
+    }
+    .checkbox-label input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+      cursor: pointer;
+    }
+    .checkbox-label input[type="checkbox"]:checked + span {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
     /* Submit button */
     .submit-wrap { margin-top: 1.75rem; }
     .submit-btn {
@@ -331,6 +364,36 @@
         <label for="behaviour">Describe the behaviour <span class="req">*</span></label>
         <textarea id="behaviour" placeholder="e.g. I raised my voice, I left the room without warning, I sent a message I regretted, I avoided the situation entirely…" maxlength="500"></textarea>
         <div class="char-count" id="beh-count">0 / 500</div>
+        
+        <div class="divider"></div>
+        <label>Behaviour type <span class="req">*</span></label>
+        <div class="behaviour-types">
+          <label class="checkbox-label">
+            <input type="checkbox" id="verbal" name="behaviourType" value="Verbal Aggression">
+            <span>Verbal Aggression</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="physical" name="behaviourType" value="Physical Aggression">
+            <span>Physical Aggression</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="absconding" name="behaviourType" value="Absconding">
+            <span>Absconding</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="property" name="behaviourType" value="Property Damage">
+            <span>Property Damage</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="selfinjury" name="behaviourType" value="Self-Injurious Behaviour">
+            <span>Self-Injurious Behaviour</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="noncompliance" name="behaviourType" value="Noncompliance/Refusal">
+            <span>Noncompliance/Refusal</span>
+          </label>
+        </div>
+
         <div class="divider"></div>
         <label>How intense was it?</label>
         <div class="sev-row" id="sevRow">
@@ -437,43 +500,23 @@
   setupCounter('consequences','cons-count',  500);
   setupCounter('extra',       'extra-count', 1000);
 
+  // Get selected behaviour types
+  function getSelectedBehaviours() {
+    const checkboxes = document.querySelectorAll('input[name="behaviourType"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+  }
+
   // Submit
   function submitForm() {
     const name = document.getElementById('personName').value.trim();
     const date = document.getElementById('entryDate').value;
     const beh  = document.getElementById('behaviour').value.trim();
+    const behaviourTypes = getSelectedBehaviours();
 
-    if (!name || !date || !beh) {
-      alert('Please fill in your name, date, and the behaviour description before submitting.');
+    if (!name || !date || !beh || behaviourTypes.length === 0) {
+      alert('Please fill in your name, date, behaviour description, and select at least one behaviour type before submitting.');
       return;
     }
-
-    // Build a readable summary for download / mailto
-    const time   = document.getElementById('entryTime').value;
-    const ante   = document.getElementById('antecedent').value.trim();
-    const set    = document.getElementById('setting').value.trim();
-    const cons   = document.getElementById('consequences').value.trim();
-    const feel   = document.getElementById('selfResponse').value;
-    const extra  = document.getElementById('extra').value.trim();
-
-    // Optional: open default email client with prefilled summary
-    // Uncomment and replace YOUR_EMAIL below to enable
-    /*
-    const subject = encodeURIComponent(`Behaviour Log — ${name} — ${date}`);
-    const body = encodeURIComponent(
-      `Behaviour Incident Log\n` +
-      `=======================\n` +
-      `Name: ${name}\nDate: ${date}  Time: ${time || 'not recorded'}\n\n` +
-      `What led up to it:\n${ante || '(not filled in)'}\n` +
-      `Setting: ${set || '(not filled in)'}\n\n` +
-      `Behaviour:\n${beh}\n` +
-      `Intensity: ${selectedSev || '(not selected)'}\n\n` +
-      `Consequences:\n${cons || '(not filled in)'}\n` +
-      `Felt afterwards: ${feel || '(not selected)'}\n\n` +
-      `Additional comments:\n${extra || '(none)'}`
-    );
-    window.location.href = `mailto:YOUR_EMAIL?subject=${subject}&body=${body}`;
-    */
 
     document.getElementById('formWrap').style.display = 'none';
     document.getElementById('successWrap').style.display = 'block';
@@ -482,10 +525,13 @@
 
   // Reset
   function resetForm() {
-    ['personName','antecedent','setting','behaviour','consequences','extra'].forEach(id => {
+    ['personName','antecedent','setting','behaviour','extra'].forEach(id => {
       document.getElementById(id).value = '';
     });
     document.getElementById('selfResponse').selectedIndex = 0;
+
+    // Uncheck all behaviour type checkboxes
+    document.querySelectorAll('input[name="behaviourType"]').forEach(cb => cb.checked = false);
 
     const n = new Date();
     document.getElementById('entryDate').value = `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
