@@ -303,7 +303,7 @@
 <div class="wrap">
 
   <!-- Form -->
-  <form id="behaviorForm">
+  <div id="formWrap">
 
     <div class="header">
       <span class="header-eyebrow">Confidential Record</span>
@@ -325,15 +325,15 @@
         <div class="row2">
           <div>
             <label for="entryDate">Date <span class="req">*</span></label>
-            <input type="date" id="entryDate" name="entryDate" required>
+            <input type="date" id="entryDate">
           </div>
           <div>
             <label for="entryTime">Time</label>
-            <input type="time" id="entryTime" name="entryTime">
+            <input type="time" id="entryTime">
           </div>
         </div>
         <label for="personName">Your name <span class="req">*</span></label>
-        <input type="text" id="personName" name="personName" placeholder="First name or initials" required>
+        <input type="text" id="personName" placeholder="First name or initials">
       </div>
     </div>
 
@@ -348,11 +348,11 @@
           </div>
         </div>
         <label for="antecedent">Describe what was happening before the behaviour occurred</label>
-        <textarea id="antecedent" name="antecedent" placeholder="e.g. I was feeling stressed after a difficult conversation, it was late in the day and I hadn't eaten, I felt overwhelmed and couldn't see a way out…" maxlength="500"></textarea>
+        <textarea id="antecedent" placeholder="e.g. I was feeling stressed after a difficult conversation, it was late in the day and I hadn't eaten, I felt overwhelmed and couldn't see a way out…" maxlength="500"></textarea>
         <div class="char-count" id="ante-count">0 / 500</div>
         <div class="divider"></div>
         <label for="setting">Where were you?</label>
-        <input type="text" id="setting" name="setting" placeholder="e.g. at home, at work, in public, online…">
+        <input type="text" id="setting" placeholder="e.g. at home, at work, in public, online…">
       </div>
     </div>
 
@@ -367,7 +367,7 @@
           </div>
         </div>
         <label for="behaviour">Describe the behaviour <span class="req">*</span></label>
-        <textarea id="behaviour" name="behaviour" placeholder="e.g. I raised my voice, I left the room without warning, I sent a message I regretted, I avoided the situation entirely…" maxlength="500" required></textarea>
+        <textarea id="behaviour" placeholder="e.g. I raised my voice, I left the room without warning, I sent a message I regretted, I avoided the situation entirely…" maxlength="500"></textarea>
         <div class="char-count" id="beh-count">0 / 500</div>
         
         <div class="divider"></div>
@@ -420,11 +420,11 @@
           </div>
         </div>
         <label for="consequences">How did others respond? What changed as a result?</label>
-        <textarea id="consequences" name="consequences" placeholder="e.g. the other person walked away, the situation escalated or calmed down, I felt immediate relief, I was asked to leave…" maxlength="500"></textarea>
+        <textarea id="consequences" placeholder="e.g. the other person walked away, the situation escalated or calmed down, I felt immediate relief, I was asked to leave…" maxlength="500"></textarea>
         <div class="char-count" id="cons-count">0 / 500</div>
         <div class="divider"></div>
         <label for="selfResponse">How did you feel afterwards?</label>
-        <select id="selfResponse" name="selfResponse">
+        <select id="selfResponse">
           <option value="" disabled selected>Select how you felt…</option>
           <option>Relieved</option>
           <option>Regretful / ashamed</option>
@@ -451,19 +451,19 @@
           </div>
         </div>
         <label for="extra">Additional comments</label>
-        <textarea id="extra" name="extra" style="min-height:110px;" placeholder="Anything else you'd like your psychologist to know about this incident, how you're feeling right now, or what you think might have helped…" maxlength="1000"></textarea>
+        <textarea id="extra" style="min-height:110px;" placeholder="Anything else you'd like your psychologist to know about this incident, how you're feeling right now, or what you think might have helped…" maxlength="1000"></textarea>
         <div class="char-count" id="extra-count">0 / 1000</div>
       </div>
     </div>
 
     <div class="submit-wrap">
-      <button class="submit-btn" id="submitBtn" type="submit">
+      <button class="submit-btn" id="submitBtn" type="button" onclick="submitForm()">
         <i class="ti ti-send" aria-hidden="true"></i> Submit entry
       </button>
       <p class="privacy-note"><i class="ti ti-lock" style="font-size:12px;" aria-hidden="true"></i> Your responses are private and confidential</p>
     </div>
 
-  </form><!-- /behaviorForm -->
+  </div><!-- /formWrap -->
 
   <!-- Success screen -->
   <div id="successWrap">
@@ -511,14 +511,15 @@
     return Array.from(checkboxes).map(cb => cb.value);
   }
 
-  // Form submission
-  document.getElementById('behaviorForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
+  // Submit
+  function submitForm() {
+    const name = document.getElementById('personName').value.trim();
+    const date = document.getElementById('entryDate').value;
+    const beh  = document.getElementById('behaviour').value.trim();
     const behaviourTypes = getSelectedBehaviours();
-    
-    if (behaviourTypes.length === 0) {
-      alert('Please select at least one behaviour type before submitting.');
+
+    if (!name || !date || !beh || behaviourTypes.length === 0) {
+      alert('Please fill in your name, date, behaviour description, and select at least one behaviour type before submitting.');
       return;
     }
 
@@ -526,28 +527,71 @@
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Sending...';
 
-    // Get form data
-    const formData = new FormData(this);
-    formData.append('behaviourTypes', behaviourTypes.join(', '));
-    formData.append('intensity', selectedSev || 'Not selected');
+    // Compile all form data
+    const time   = document.getElementById('entryTime').value;
+    const ante   = document.getElementById('antecedent').value.trim();
+    const set    = document.getElementById('setting').value.trim();
+    const cons   = document.getElementById('consequences').value.trim();
+    const feel   = document.getElementById('selfResponse').value;
+    const extra  = document.getElementById('extra').value.trim();
 
-    // Send to Formspree
+    // Create JSON payload
+    const payload = {
+      email: 'hasanalali@live.com',
+      name: name,
+      date: date,
+      time: time || 'Not recorded',
+      antecedent: ante || 'Not filled in',
+      setting: set || 'Not filled in',
+      behaviour: beh,
+      behaviourTypes: behaviourTypes.join(', '),
+      intensity: selectedSev || 'Not selected',
+      consequences: cons || 'Not filled in',
+      felt: feel || 'Not selected',
+      extra: extra || 'None'
+    };
+
+    // Send via email service (using a simple backend endpoint)
+    // For now, we'll use a direct fetch to a mail service
     fetch('https://formspree.io/f/meoqqlnq', {
       method: 'POST',
-      body: formData,
       headers: {
+        'Content-Type': 'application/json',
         'Accept': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        name: `Behaviour Log: ${name}`,
+        email: 'hasanalali@live.com',
+        message: `
+Date: ${date}
+Time: ${time || 'Not recorded'}
+Name: ${name}
+
+--- ANTECEDENT (What led up to it) ---
+${ante || 'Not filled in'}
+Setting: ${set || 'Not filled in'}
+
+--- BEHAVIOUR ---
+Description: ${beh}
+Type(s): ${behaviourTypes.join(', ')}
+Intensity: ${selectedSev || 'Not selected'}
+
+--- CONSEQUENCES ---
+${cons || 'Not filled in'}
+Felt afterwards: ${feel || 'Not selected'}
+
+--- ADDITIONAL COMMENTS ---
+${extra || 'None'}
+        `
+      })
     })
     .then(response => {
       if (response.ok) {
-        document.getElementById('behaviorForm').style.display = 'none';
+        document.getElementById('formWrap').style.display = 'none';
         document.getElementById('successWrap').style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Submit entry';
-        alert('There was an issue sending your entry. Please try again.');
+        throw new Error('Response not ok');
       }
     })
     .catch(error => {
@@ -556,27 +600,30 @@
       submitBtn.innerHTML = '<i class="ti ti-send" aria-hidden="true"></i> Submit entry';
       alert('There was an issue sending your entry. Please try again.');
     });
-  });
+  }
 
   // Reset
   function resetForm() {
-    document.getElementById('behaviorForm').reset();
-    
-    // Re-set date and time
+    ['personName','antecedent','setting','behaviour','consequences','extra'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('selfResponse').selectedIndex = 0;
+
+    // Uncheck all behaviour type checkboxes
+    document.querySelectorAll('input[name="behaviourType"]').forEach(cb => cb.checked = false);
+
     const n = new Date();
     document.getElementById('entryDate').value = `${n.getFullYear()}-${pad(n.getMonth()+1)}-${pad(n.getDate())}`;
     document.getElementById('entryTime').value = `${pad(n.getHours())}:${pad(n.getMinutes())}`;
 
-    // Reset counters
-    [['ante-count',500],['beh-count',500],['cons-count',500],['extra-count',1000]]
-      .forEach(([id, max]) => { document.getElementById(id).textContent = `0 / ${max}`; });
-
-    // Reset severity buttons
     document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
     selectedSev = '';
 
+    [['ante-count',500],['beh-count',500],['cons-count',500],['extra-count',1000]]
+      .forEach(([id, max]) => { document.getElementById(id).textContent = `0 / ${max}`; });
+
     document.getElementById('successWrap').style.display = 'none';
-    document.getElementById('behaviorForm').style.display = 'block';
+    document.getElementById('formWrap').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 </script>
