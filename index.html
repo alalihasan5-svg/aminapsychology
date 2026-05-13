@@ -308,7 +308,7 @@
     <div class="header">
       <span class="header-eyebrow">Confidential Record</span>
       <h1 class="header-title">Behaviour Incident Log</h1>
-      <p class="header-sub">Please answer each section as honestly as you can. Your responses are kept private and will be reviewed with your psychologist.</p>
+      <p class="header-sub">Please answer each section as honestly as you can. Your responses are kept private and will be reviewed with your Behaviour Support Practitioner.</p>
       <hr class="header-rule">
     </div>
 
@@ -318,7 +318,7 @@
         <div class="section-head">
           <div class="section-icon icon-meta" aria-hidden="true"><i class="ti ti-id-badge"></i></div>
           <div>
-            <div class="section-title">Who &amp; when</div>
+            <div class="section-title">Who &amp; When</div>
             <div class="section-desc">Basic details about this entry</div>
           </div>
         </div>
@@ -447,11 +447,11 @@
           <div class="section-icon icon-note" aria-hidden="true"><i class="ti ti-notes"></i></div>
           <div>
             <div class="section-title">Anything else to add?</div>
-            <div class="section-desc">Extra thoughts, context, or reflections for your psychologist</div>
+            <div class="section-desc">Extra thoughts, context, or reflections for your Behaviour Support Practitioner</div>
           </div>
         </div>
         <label for="extra">Additional comments</label>
-        <textarea id="extra" style="min-height:110px;" placeholder="Anything else you'd like your psychologist to know about this incident, how you're feeling right now, or what you think might have helped…" maxlength="1000"></textarea>
+        <textarea id="extra" style="min-height:110px;" placeholder="Anything else you'd like your Behaviour Support Practitioner to know about this incident, how you're feeling right now, or what you think might have helped…" maxlength="1000"></textarea>
         <div class="char-count" id="extra-count">0 / 1000</div>
       </div>
     </div>
@@ -469,7 +469,7 @@
   <div id="successWrap">
     <div class="success-icon"><i class="ti ti-circle-check" aria-hidden="true"></i></div>
     <h2 class="success-title">Entry recorded</h2>
-    <p class="success-sub">Thank you for taking the time to complete this. Your psychologist will review it at your next session. You can close this page now.</p>
+    <p class="success-sub">Thank you for taking the time to complete this. Your Behaviour Support Practitioner will review it at your next session. You can close this page now.</p>
     <button class="reset-btn" type="button" onclick="resetForm()">
       <i class="ti ti-plus" aria-hidden="true"></i> Log another entry
     </button>
@@ -551,8 +551,6 @@
       extra: extra || 'None'
     };
 
-    // Send via email service (using a simple backend endpoint)
-    // For now, we'll use a direct fetch to a mail service
     fetch('https://formspree.io/f/mojryekw', {
       method: 'POST',
       headers: {
@@ -609,7 +607,6 @@ ${extra || 'None'}
     });
     document.getElementById('selfResponse').selectedIndex = 0;
 
-    // Uncheck all behaviour type checkboxes
     document.querySelectorAll('input[name="behaviourType"]').forEach(cb => cb.checked = false);
 
     const n = new Date();
